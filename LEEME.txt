@@ -1,0 +1,35 @@
+TENNIS LAB TOOLS - PAQUETE PARA ALOJAMIENTO PROPIO
+==================================================
+
+CONTENIDO (7 archivos, todos en la misma carpeta)
+  index.html               la aplicación completa
+  manifest.webmanifest     datos para instalarla como app
+  sw.js                    caché para usarla sin conexión
+  icon-192.png, icon-512.png, icon-maskable-512.png   iconos
+
+INSTALACIÓN EN TU ALOJAMIENTO
+  1. Sube los archivos a una carpeta de tu alojamiento (por ejemplo /tenis/).
+     No hace falta base de datos ni programación en el servidor.
+  2. Comprueba que la dirección empieza por https:// (necesario para
+     instalarla y para el uso sin conexión).
+  3. Abre la dirección en Chrome para Android, pulsa el menú (tres puntos)
+     y elige "Instalar aplicación" o "Añadir a la pantalla de inicio".
+
+TUS DATOS
+  Los registros (raquetas, encordados, zapatillas) se guardan en el navegador
+  y dependen de la dirección web. Para pasarlos desde la versión anterior:
+    1. En la versión anterior: Copia de seguridad > Exportar copia.
+    2. En la nueva: Copia de seguridad > Importar copia > Restaurar copia.
+  Si cambias de dominio o de carpeta, repite este paso.
+  Haz copias periódicas: si borras los datos del navegador, se pierden.
+
+ACTUALIZAR A UNA VERSIÓN NUEVA
+  Sube el nuevo index.html (y los demás archivos si se indican cambios) sobre
+  los anteriores. La app muestra la versión nueva la segunda vez que se abre.
+  Si no cambia, cierra la app por completo y vuelve a abrirla.
+
+NOTAS
+  - Si abres index.html con doble clic en el ordenador, la aplicación funciona,
+    pero no se puede instalar ni usar sin conexión.
+  - Si tu servidor no reconoce la extensión .webmanifest, añade el tipo
+    application/manifest+json (la mayoría ya lo hacen).

@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14325c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Tennis Lab Tools</title>
+<style>
+:root{--bg:#eef2f6;--surface:#fff;--ink:#12233a;--muted:#5b6b80;--line:#d3dbe5;--accent:#14325c;--on-accent:#fff;--ball:#d4e600;--on-ball:#1a2300;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1828;--surface:#15243a;--ink:#e8eef6;--muted:#9fb0c6;--line:#27384f;--accent:#8fb8f0;--on-accent:#0d1828;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1828;--surface:#15243a;--ink:#e8eef6;--muted:#9fb0c6;--line:#27384f;--accent:#8fb8f0;--on-accent:#0d1828;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:84px}
+header{padding:20px 20px 4px;max-width:560px;margin:0 auto}
+header h1{margin:0;font-size:28px;font-weight:800;letter-spacing:-.02em}
+header p{margin:2px 0 0;color:var(--muted);font-size:14px}
+main{max-width:560px;margin:0 auto;padding:12px 20px 24px}
+h2{font-size:20px;margin:8px 0 4px}
+.lead{color:var(--muted);margin:0 0 16px;font-size:15px}
+.field{display:block;margin:0 0 14px}
+.field span{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;font:inherit;font-size:22px;font-weight:700;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:10px 12px;min-height:52px}
+select{font-size:18px;font-weight:600}
+input:focus,select:focus,button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.chip{font:inherit;font-weight:600;font-size:15px;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:6px 14px;min-height:40px;cursor:pointer}
+.chip:active{background:var(--ball);color:var(--on-ball);border-color:var(--ball)}
+.result{background:var(--accent);color:var(--on-accent);border-radius:14px;padding:16px 18px;margin:4px 0 16px}
+.result b{font-size:30px;line-height:1.15;display:block;letter-spacing:-.01em}
+.result small{opacity:.85;font-size:14px}
+.note{border-left:6px solid var(--ball);padding:4px 0 4px 14px;margin:0 0 16px}
+.note p{margin:0 0 6px}
+table{width:100%;border-collapse:collapse;margin:0 0 16px;font-variant-numeric:tabular-nums}
+td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--muted);font-weight:600;font-size:14px}
+td:last-child,th:last-child{text-align:right}
+.fine{color:var(--muted);font-size:13px}
+.check{display:flex;gap:10px;align-items:center;margin:0 0 14px;font-size:15px}
+.check input{width:24px;height:24px;min-height:0;accent-color:var(--accent)}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav button{flex:1;font:inherit;font-size:13px;font-weight:600;color:var(--muted);background:none;border:0;padding:10px 4px 12px;min-height:60px;cursor:pointer;border-top:4px solid transparent}
+nav button[aria-selected="true"]{color:var(--ink);border-top-color:var(--ball)}
+nav button svg{display:block;margin:0 auto 2px;width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+footer{max-width:560px;margin:0 auto;padding:0 20px 24px}
+.btn{font:inherit;font-weight:700;font-size:17px;background:var(--ball);color:var(--on-ball);border:0;border-radius:10px;min-height:52px;padding:0 18px;width:100%;cursor:pointer}
+.btn:active{filter:brightness(.92)}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:14px;margin:0 0 14px}
+.card.due{border-color:var(--ball);box-shadow:inset 6px 0 0 var(--ball)}
+.card .row{align-items:center;margin:10px 0}
+.card input{font-size:18px;min-height:46px}
+.card .btn{min-height:46px;font-size:15px}
+.bar{height:10px;background:var(--line);border-radius:5px;overflow:hidden;margin:10px 0 4px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.thumb{width:84px;height:84px;object-fit:cover;border-radius:10px;border:2px solid var(--line);flex:none}
+.f2 input{font-size:17px;font-weight:600}
+.f2 input[type=file]{font-size:15px}
+textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:10px 12px;min-height:84px}
+textarea:focus{outline:3px solid var(--accent);outline-offset:1px}
+summary{font-weight:700;font-size:17px;padding:10px 0;cursor:pointer;min-height:44px}
+details{margin:0 0 6px}
+
+nav{overflow-x:auto}
+nav button{font-size:11px;min-width:62px;padding-left:2px;padding-right:2px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><h1>Tennis Lab Tools</h1><p>Utilidades de tenis · v<span id="ver"></span></p></header>
+<main id="view" aria-live="polite"></main>
+<footer class="fine"><details id="bk"><summary>Copia de seguridad</summary>
+<p>Guarda un archivo con tus raquetas, encordados y zapatillas, o restáuralo en otro dispositivo.</p>
+<div class="acts"><button class="chip" id="bkx">Exportar copia</button><label class="chip" style="display:inline-flex;align-items:center;cursor:pointer">Importar copia<input type="file" id="bki" accept=".json,application/json" hidden></label><button class="chip" id="bkc" hidden>Restaurar copia</button></div>
+<p id="bkm" role="status"></p><textarea id="bkt" hidden readonly aria-label="Texto de la copia"></textarea></details>
+<p>Valores orientativos. La app se amplía registrando nuevas herramientas.</p></footer>
+<nav id="nav" role="tablist" aria-label="Herramientas"></nav>
+
+<script>
+"use strict";
+const VERSION = "1.6.0";
+document.getElementById("ver").textContent = VERSION;
+
+/* ---------- Registro de herramientas: añadir una función nueva = registrar un objeto más ---------- */
+const TOOLS = [];
+const registerTool = t => TOOLS.push(t);
+
+/* ---------- Utilidades ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const num = v => { const n = parseFloat(String(v).replace(",", ".")); return isFinite(n) ? n : NaN; };
+const fmt = (n, d = 1) => isFinite(n) ? n.toLocaleString("es-ES", {minimumFractionDigits: d, maximumFractionDigits: d}) : "—";
+const field = (id, label, val = "", extra = "") =>
+  `<label class="field"><span>${label}</span><input id="${id}" inputmode="decimal" autocomplete="off" value="${val}" ${extra}></label>`;
+const icon = p => `<svg viewBox="0 0 24 24" aria-hidden="true">${p}</svg>`;
+
+/* ---------- 1. Tensión de cordaje ---------- */
+const KG_LB = 2.20462262;
+registerTool({
+  id: "cordaje", name: "Cordaje",
+  icon: icon('<circle cx="9" cy="9" r="6"/><path d="M9 3v12M3 9h12M13.5 13.5 21 21"/>'),
+  render(el) {
+    el.innerHTML = `<h2>Tensión del cordaje</h2><p class="lead">Escribe en cualquiera de los dos campos.</p>
+      <div class="row">${field("kg", "Kilos (kg)", "24")}${field("lb", "Libras (lb)", fmt(24 * KG_LB))}</div>
+      <div class="chips">${[20,22,24,26,28,30].map(k => `<button class="chip" data-k="${k}">${k} kg</button>`).join("")}</div>
+      <div class="note" id="band"></div>
+      <table><tr><th>Kilos</th><th>Libras</th></tr>${[20,22,24,26,28,30].map(k => `<tr><td>${k} kg</td><td>${fmt(k * KG_LB)} lb</td></tr>`).join("")}</table>`;
+    const kg = $("#kg", el), lb = $("#lb", el);
+    const band = k => !isFinite(k) ? "" :
+      k < 20 ? "<p><b>Muy suelto.</b> Máxima potencia y confort, pero poco control.</p>" :
+      k < 24 ? "<p><b>Suelto.</b> Más potencia y trampolín; fácil para el brazo.</p>" :
+      k < 28 ? "<p><b>Equilibrado.</b> Rango habitual en jugadores de club.</p>" :
+      "<p><b>Tenso.</b> Más control, menos potencia y más exigente para el brazo.</p>";
+    const upd = k => { $("#band", el).innerHTML = band(k) + `<p class="fine">Cada marca de cordaje y cada raqueta tienen su rango recomendado: consulta el que figura en el marco.</p>`; };
+    kg.oninput = () => { const k = num(kg.value); lb.value = isFinite(k) ? fmt(k * KG_LB) : ""; upd(k); };
+    lb.oninput = () => { const l = num(lb.value), k = l / KG_LB; kg.value = isFinite(k) ? fmt(k) : ""; upd(k); };
+    el.querySelectorAll(".chip").forEach(c => c.onclick = () => { kg.value = c.dataset.k; kg.oninput(); });
+    upd(24);
+  }
+});
+
+/* ---------- 2. Velocidad de bola ---------- */
+const MPH = 1.609344;
+registerTool({
+  id: "velocidad", name: "Velocidad",
+  icon: icon('<path d="M4 18a8 8 0 1 1 16 0"/><path d="m12 18 4-6"/>'),
+  render(el) {
+    el.innerHTML = `<h2>Velocidad de la bola</h2><p class="lead">Escribe en cualquiera de los campos.</p>
+      <div class="row">${field("kmh", "km/h", "180")}${field("mph", "millas/h (mph)", fmt(180 / MPH))}</div>
+      ${field("ms", "metros por segundo (m/s)", fmt(180 / 3.6))}
+      <div class="result"><small>Tiempo teórico en recorrer una pista (23,77 m)</small><b id="t"></b><small>Sin rozamiento ni bote: la bola real tarda más.</small></div>
+      <table><tr><th>Golpe orientativo</th><th>km/h</th></tr>
+      <tr><td>Saque de aficionado</td><td>100–150</td></tr><tr><td>Saque de club avanzado</td><td>150–180</td></tr><tr><td>Saque profesional</td><td>190–230</td></tr></table>`;
+    const kmh = $("#kmh", el), mph = $("#mph", el), ms = $("#ms", el);
+    const set = v => { kmh.value = isFinite(v) ? fmt(v) : ""; mph.value = isFinite(v) ? fmt(v / MPH) : ""; ms.value = isFinite(v) ? fmt(v / 3.6) : "";
+      $("#t", el).textContent = v > 0 ? fmt(23.77 / (v / 3.6), 2) + " s" : "—"; };
+    const bind = (inp, f) => inp.oninput = () => { const v = f(num(inp.value)); const keep = inp.value;
+      set(v); inp.value = keep; };
+    bind(kmh, v => v); bind(mph, v => v * MPH); bind(ms, v => v * 3.6);
+    set(180);
+  }
+});
+
+/* ---------- 3. Presión atmosférica y vuelo de la bola ---------- */
+const P_UNITS = [["hPa / mbar", 1], ["kPa", 10], ["mmHg", 1.33322387], ["inHg", 33.863886], ["atm", 1013.25], ["bar", 1000], ["psi", 68.9475729]];
+registerTool({
+  id: "presion", name: "Presión",
+  icon: icon('<path d="M3 8h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 18h8"/>'),
+  render(el) {
+    el.innerHTML = `<h2>Presión atmosférica</h2><p class="lead">Convierte y descubre cómo afecta al vuelo de la bola.</p>
+      <div class="row">${field("p", "Presión", "1013")}
+      <label class="field"><span>Unidad</span><select id="u">${P_UNITS.map((u, i) => `<option value="${i}">${u[0]}</option>`).join("")}</select></label></div>
+      <div class="row">${field("temp", "Temperatura (°C)", "20")}${field("alt", "Altitud de la pista (m)", "0")}</div>
+      <label class="check"><input type="checkbox" id="sea"> La presión es la de una previsión del tiempo (referida al nivel del mar)</label>
+      <table id="conv"></table>
+      <div class="result"><small>Densidad del aire</small><b id="rho"></b><small id="rel"></small></div>
+      <div class="note" id="eff"></div>`;
+    const g = id => $("#" + id, el);
+    const calc = () => {
+      const unit = P_UNITS[+g("u").value][1], p = num(g("p").value) * unit;
+      const T = num(g("temp").value), h = num(g("alt").value) || 0;
+      if (!isFinite(p) || p <= 0) { g("conv").innerHTML = ""; g("rho").textContent = "—"; g("rel").textContent = ""; g("eff").innerHTML = "<p>Introduce una presión válida.</p>"; return; }
+      g("conv").innerHTML = "<tr><th>Unidad</th><th>Valor</th></tr>" + P_UNITS.map(u => `<tr><td>${u[0]}</td><td>${fmt(p / u[1], u[1] >= 10 ? 3 : 1)}</td></tr>`).join("");
+      const station = g("sea").checked ? p * Math.pow(1 - h / 44330, 5.255) : p;
+      const Tk = (isFinite(T) ? T : 15) + 273.15;
+      const rho = station * 100 / (287.05 * Tk);
+      const rel = (rho / 1.225 - 1) * 100;
+      const eqAlt = 44330 * (1 - Math.pow(station / 1013.25, 0.1903));
+      g("rho").textContent = fmt(rho, 3) + " kg/m³";
+      g("rel").textContent = `${rel >= 0 ? "+" : ""}${fmt(rel)} % respecto a la atmósfera estándar · equivale a ${fmt(eqAlt, 0)} m de altitud`;
+      let msg;
+      if (rel <= -3) msg = `<p><b>Aire menos denso.</b> La bola sufre menos rozamiento: vuela más rápido y llega más lejos, y el liftado y el cortado hacen algo menos de efecto. Conviene controlar la profundidad de los golpes.</p>`;
+      else if (rel >= 3) msg = `<p><b>Aire más denso.</b> La bola frena más y cae antes; los efectos muerden más. Se juega algo más lento y hace falta más fuerza para llegar al fondo.</p>`;
+      else msg = `<p><b>Condiciones cercanas a las estándar.</b> No cabe esperar cambios apreciables en el vuelo de la bola.</p>`;
+      g("eff").innerHTML = msg + `<p class="fine">Rozamiento y efecto Magnus son proporcionales a la densidad. Un cambio de tiempo típico (±15 hPa) altera la densidad apenas ±1,5 %: la temperatura y la altitud pesan mucho más.</p>`;
+    };
+    el.querySelectorAll("input,select").forEach(i => i.oninput = i.onchange = calc);
+    calc();
+  }
+});
+
+/* ---------- 4. Ajuste de tensión por clima ---------- */
+registerTool({
+  id: "clima", name: "Clima",
+  icon: icon('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+  render(el) {
+    el.innerHTML = `<h2>Ajuste por clima</h2><p class="lead">Con frío el cordaje se pone más rígido y la bola sale menos viva; con calor ocurre lo contrario. Calcula cuánto compensarlo.</p>
+      <div class="row">${field("tk", "Tu tensión habitual (kg)", "24")}${field("tr", "Temperatura habitual (°C)", "20")}</div>
+      <div class="row">${field("th", "Temperatura de hoy (°C)", "10")}${field("ts", "Ajuste por cada 10 °C (kg)", "0,5")}</div>
+      <div class="result"><small>Tensión sugerida</small><b id="sug"></b><small id="det"></small></div>
+      <div class="note" id="txt"></div>`;
+    const g = id => $("#" + id, el);
+    const calc = () => {
+      const k = num(g("tk").value), r = num(g("tr").value), h = num(g("th").value), s = num(g("ts").value);
+      if (![k, r, h, s].every(isFinite)) { g("sug").textContent = "—"; g("det").textContent = ""; g("txt").innerHTML = "<p>Rellena todos los campos.</p>"; return; }
+      const d = h - r, adj = d / 10 * s, sug = k + adj;
+      g("sug").textContent = `${fmt(sug)} kg · ${fmt(sug * KG_LB)} lb`;
+      g("det").textContent = `${adj >= 0 ? "+" : "−"}${fmt(Math.abs(adj), 2)} kg respecto a tu tensión habitual`;
+      g("txt").innerHTML = (d <= -5 ? "<p><b>Hace más frío de lo habitual.</b> Un cordaje algo más suelto recupera potencia y evita la sensación de dureza.</p>"
+        : d >= 5 ? "<p><b>Hace más calor de lo habitual.</b> Un cordaje algo más tenso compensa la bola más viva y mejora el control.</p>"
+        : "<p><b>Temperatura cercana a la habitual.</b> No hace falta ajustar.</p>")
+        + `<p class="fine">Es una regla orientativa: la diferencia real depende del cordaje y de tus sensaciones. Si lo notas corto o largo, cambia el valor de «Ajuste por cada 10 °C».</p>`;
+    };
+    el.querySelectorAll("input").forEach(i => i.oninput = calc);
+    calc();
+  }
+});
+
+/* ---------- 5. Raquetas y encordados ---------- */
+const LS_R = "cancha:raquetas";
+let memR = null;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const today = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+const dmy = s => s ? s.split("-").reverse().join("/") : "—";
+const nv = v => typeof v === "number" && isFinite(v) ? fmt(v) : "—";
+const lbs = v => typeof v === "number" && isFinite(v) ? v * KG_LB : null;
+const eur = v => typeof v === "number" && isFinite(v) ? " · " + fmt(v, 2) + " €" : "";
+const loadR = () => {
+  try {
+    const a = JSON.parse(localStorage.getItem(LS_R)); if (a) return a;
+    const o = JSON.parse(localStorage.getItem("cancha:encordados"));
+    if (o) return o.map(r => ({id: uid(), n: r.n, s: {}, e: [{f: r.f, m: r.c, kv: r.k, kh: r.k, max: r.max, h: r.h}]}));
+  } catch (e) {}
+  return memR || [];
+};
+const saveR = a => { memR = a; try { localStorage.setItem(LS_R, JSON.stringify(a)); return true; } catch (e) { return false; } };
+
+/* campo, etiqueta, unidad A, unidad B, divisor (A→B) */
+const SPECS = [
+  ["head", "Tamaño de cabeza", "cm²", "in²", 6.4516],
+  ["len", "Longitud", "cm", "in", 2.54],
+  ["wS", "Peso con cordaje", "g", "oz", 28.3495],
+  ["wU", "Peso sin cordaje", "g", "oz", 28.3495],
+  ["bal", "Balance con cordaje", "cm", "in", 2.54],
+  ["balU", "Balance sin cordaje", "cm", "in", 2.54]
+];
+const TXT = [
+  ["balP", "Balance con cordaje (puntos)", "5 pts HL"], ["balUP", "Balance sin cordaje (puntos)", "7 pts HL"],
+  ["sw", "Swingweight", "317"], ["stiff", "Rigidez (RA)", "67"], ["beam", "Ancho de marco (mm)", "23,8 / 26,5 / 22,5"],
+  ["comp", "Composición", "Grafito HM"], ["color", "Color", "Azul"], ["grip", "Empuñadura", "Sintética"],
+  ["pat", "Patrón de cuerdas", "16 × 19"], ["tens", "Tensión recomendada", "20-27 kg / 45-60 lb"]
+];
+const pair = ([k, l, a, b, f], v) => { const x = num(v);
+  return `<div class="field"><span>${l}</span><div class="row"><div><input data-k="${k}" data-f="${f}" inputmode="decimal" value="${esc(v)}" aria-label="${l} (${a})"><small class="fine">${a}</small></div><div><input data-pb="${k}" data-f="${f}" inputmode="decimal" value="${isFinite(x) ? fmt(x / f, 2) : ""}" aria-label="${l} (${b})"><small class="fine">${b}</small></div></div></div>`; };
+const tf = ([k, l, p], v) => `<label class="field"><span>${l}</span><input data-k="${k}" placeholder="${p}" value="${esc(v)}"></label>`;
+
+/* campos del encordado (cordaje + fecha + notas) */
+const cf = (e = {}) => `
+  <label class="field"><span>Fecha de encordado</span><input type="date" data-c="f" value="${e.f || today()}"></label>
+  ${[["m", "Marca y modelo del cordaje", "Babolat RPM Blast"], ["t", "Tipo / material", "Poliéster monofilamento copolímero"], ["g", "Calibre (mm)", "1,25"], ["es", "Estructura", "Octogonal"]]
+    .map(([k, l, p]) => `<label class="field"><span>${l}</span><input data-c="${k}" placeholder="${p}" value="${esc(e[k])}"></label>`).join("")}
+  <div class="row">${field("c_kv", "Tensión verticales (kg)", e.kv ?? "24", 'data-c="kv"')}${field("c_kh", "Tensión horizontales (kg)", e.kh ?? "24", 'data-c="kh"')}</div>
+  <div class="row">${field("c_p", "Precio (€)", e.p ?? "", 'data-c="p"')}${field("c_max", "Reencordar a las (h)", e.max ?? "25", 'data-c="max"')}</div>
+  <label class="field"><span>Notas del cordaje</span><textarea data-c="nt" placeholder="Detalles particulares">${esc(e.nt)}</textarea></label>`;
+
+const sum = e => `${esc(e.m) || "Cordaje sin indicar"}${e.g ? " " + esc(e.g) + " mm" : ""}${e.t ? "<br><span class='fine'>" + esc(e.t) + (e.es ? " · " + esc(e.es) : "") + "</span>" : ""}<br>${nv(e.kv)} kg verticales / ${nv(e.kh)} kg horizontales <span class='fine'>(${nv(lbs(e.kv))} / ${nv(lbs(e.kh))} lb)</span>${eur(e.p)}${e.nt ? "<br><span class='fine'>" + esc(e.nt) + "</span>" : ""}`;
+const specRows = s => SPECS.filter(x => s[x[0]]).map(([k, l, a, b, f]) => `<tr><td>${l}</td><td>${esc(s[k])} ${a} / ${fmt(num(s[k]) / f, 2)} ${b}</td></tr>`).join("")
+  + TXT.filter(x => s[x[0]]).map(([k, l]) => `<tr><td>${l}</td><td>${esc(s[k])}</td></tr>`).join("");
+const gather = (root, attr) => { const o = {}; root.querySelectorAll(`[${attr}]`).forEach(i => { o[i.getAttribute(attr)] = i.value.trim(); }); return o; };
+const toE = o => { ["kv", "kh", "p", "max"].forEach(k => { o[k] = num(o[k]); }); o.h = 0; return o; };
+
+registerTool({
+  id: "raquetas", name: "Raquetas",
+  icon: icon('<ellipse cx="9" cy="9" rx="6" ry="7"/><path d="M5 5l8 8M5 11l5 5M13.5 15.5 21 21"/>'),
+  render(el) {
+    let R = loadR(), v = {t: "list"}, img = null, armed = -1, armedE = "", warn = "";
+    const last = r => r.e[r.e.length - 1] || {};
+    const commit = () => { warn = saveR(R) ? "" : "No se pudo guardar: el almacenamiento está lleno o bloqueado (prueba con una foto más pequeña)."; };
+    const card = (r, i) => {
+      const L = last(r), due = L.h >= L.max, pct = Math.min(100, (L.h || 0) / (L.max || 1) * 100), rows = specRows(r.s || {});
+      return `<div class="card ${due ? "due" : ""}">
+        <div style="display:flex;gap:12px;align-items:center">${r.img ? `<img class="thumb" src="${r.img}" alt="">` : ""}<div><b style="font-size:18px">${esc(r.n)}</b><br><span class="fine">${r.adq ? "Adquirida el " + dmy(r.adq) : ""}${r.tienda ? " en " + esc(r.tienda) : ""}</span></div></div>
+        ${rows || r.notas ? `<details><summary>Características y notas</summary>${rows ? `<table>${rows}</table>` : ""}${r.notas ? `<p class="fine">${esc(r.notas)}</p>` : ""}</details>` : ""}
+        <p style="margin:10px 0 0"><b>Cordaje actual</b> (${dmy(L.f)})<br>${sum(L)}</p>
+        <div class="bar" role="img" aria-label="${nv(L.h || 0)} de ${nv(L.max)} horas"><i style="width:${pct}%"></i></div>
+        <span class="fine">${nv(L.h || 0)} de ${nv(L.max)} h jugadas</span>${due ? `<p style="margin:6px 0 0"><b>Toca reencordar.</b></p>` : ""}
+        <div class="row"><input id="h${i}" inputmode="decimal" value="1" aria-label="Horas a sumar"><button class="btn" data-act="hrs" data-i="${i}">Sumar horas</button></div>
+        <details ${armedE.startsWith(i + "-") ? "open" : ""}><summary>Historial de encordados (${r.e.length})</summary>${r.e.map((e, j) => `<div style="margin:8px 0;padding-bottom:8px;border-bottom:1px solid var(--line)"><b>${dmy(e.f)}</b> · ${nv(e.h || 0)} h jugadas<br>${sum(e)}<div class="acts" style="margin-top:8px"><button class="chip" data-act="ee" data-i="${i}" data-j="${j}">Editar</button>${r.e.length > 1 ? `<button class="chip" data-act="de" data-i="${i}" data-j="${j}">${armedE === i + "-" + j ? "¿Seguro? Pulsa otra vez" : "Eliminar"}</button>` : ""}</div></div>`).reverse().join("")}</details>
+        <div class="acts"><button class="chip" data-act="enc" data-i="${i}">Nuevo encordado</button><button class="chip" data-act="edit" data-i="${i}">Editar</button><button class="chip" data-act="del" data-i="${i}">${armed === i ? "¿Seguro? Pulsa otra vez" : "Eliminar"}</button></div></div>`;
+    };
+    const formHTML = r => { const s = r.s || {}, nuevo = v.i == null; return `
+      <h2>${nuevo ? "Nueva raqueta" : "Editar raqueta"}</h2>
+      <label class="field"><span>Marca y modelo</span><input data-r="n" placeholder="Yonex EZONE 100" value="${esc(r.n)}"></label>
+      <div class="field"><span>Foto</span><input type="file" id="img" accept="image/*"><img id="prev" class="thumb" alt="Vista previa" style="margin-top:8px" ${img ? `src="${img}"` : "hidden"}></div>
+      <details open><summary>Características</summary>${SPECS.map(x => pair(x, s[x[0]] ?? "")).join("")}<p class="fine">Cada medida tiene dos casillas enlazadas: escribe en cualquiera y se convierte sola.</p>${TXT.map(x => tf(x, s[x[0]] ?? "")).join("")}</details>
+      <details><summary>Compra y notas</summary>
+        <label class="field"><span>Fecha de adquisición</span><input type="date" data-r="adq" value="${esc(r.adq)}"></label>
+        <label class="field"><span>Tienda de compra</span><input data-r="tienda" value="${esc(r.tienda)}"></label>
+        <label class="field"><span>Notas</span><textarea data-r="notas" placeholder="Detalles particulares">${esc(r.notas)}</textarea></label></details>
+      ${nuevo ? `<details open><summary>Primer encordado</summary><p class="fine">Puedes poner una fecha pasada para tener el historial completo.</p>${cf()}</details>` : ""}
+      <button class="btn" data-act="save">Guardar</button><p></p><button class="chip" data-act="cancel">Cancelar</button>`; };
+    const draw = () => {
+      if (v.t === "form") el.innerHTML = `<div class="f2">${formHTML(v.i != null ? R[v.i] : {})}</div>`;
+      else if (v.t === "ee") { const r = R[v.i]; el.innerHTML = `<div class="f2"><h2>Editar encordado</h2><p class="lead">${esc(r.n)}</p>${cf(r.e[v.j])}${field("c_h", "Horas jugadas", r.e[v.j].h ?? 0, 'data-c="h"')}<button class="btn" data-act="saveee">Guardar cambios</button><p></p><button class="chip" data-act="cancel">Cancelar</button></div>`; }
+      else if (v.t === "enc") { const r = R[v.i]; el.innerHTML = `<div class="f2"><h2>Nuevo encordado</h2><p class="lead">${esc(r.n)}. Se añade al historial y el contador de horas empieza de cero.</p>${cf({...last(r), f: today(), nt: ""})}<button class="btn" data-act="saveenc">Guardar encordado</button><p></p><button class="chip" data-act="cancel">Cancelar</button></div>`; }
+      else el.innerHTML = `<div class="f2"><h2>Mis raquetas</h2><p class="lead">Ficha de cada raqueta, con su historial de encordados.</p>${warn ? `<p class="note">${warn}</p>` : ""}<button class="btn" data-act="new">Añadir raqueta</button><p></p>${R.length ? R.map(card).join("") : `<p class="lead">Todavía no hay ninguna.</p>`}<p class="fine">Los datos se guardan solo en este dispositivo y navegador.</p></div>`;
+    };
+    el.onclick = e => {
+      const b = e.target.closest("button"); if (!b || !el.contains(b)) return;
+      const a = b.dataset.act, i = +b.dataset.i;
+      if (a === "new") { img = null; v = {t: "form"}; }
+      else if (a === "edit") { img = R[i].img || null; v = {t: "form", i}; }
+      else if (a === "enc") v = {t: "enc", i};
+      else if (a === "cancel") v = {t: "list"};
+      else if (a === "save") {
+        const o = gather(el, "data-r"); if (!o.n) { $("[data-r=n]", el).focus(); return; }
+        o.img = img; o.s = gather(el, "data-k");
+        if (v.i != null) Object.assign(R[v.i], o); else { o.id = uid(); o.e = [toE(gather(el, "data-c"))]; R.push(o); }
+        commit(); v = {t: "list"};
+      }
+      else if (a === "ee") v = {t: "ee", i, j: +b.dataset.j};
+      else if (a === "saveee") { const o = gather(el, "data-c"), old = R[v.i].e[v.j]; ["kv", "kh", "p", "max", "h"].forEach(k => { o[k] = num(o[k]); }); if (!isFinite(o.h)) o.h = old.h || 0; Object.assign(old, o); commit(); v = {t: "list"}; }
+      else if (a === "de") { const j = +b.dataset.j, key = i + "-" + j; if (armedE !== key) { armedE = key; draw(); return; } R[i].e.splice(j, 1); commit(); }
+      else if (a === "saveenc") { R[v.i].e.push(toE(gather(el, "data-c"))); commit(); v = {t: "list"}; }
+      else if (a === "hrs") { const h = num($("#h" + i, el).value); if (h > 0) { last(R[i]).h = (last(R[i]).h || 0) + h; commit(); } }
+      else if (a === "del") { if (armed !== i) { armed = i; draw(); return; } R.splice(i, 1); commit(); }
+      else return;
+      armed = -1; armedE = ""; draw(); window.scrollTo(0, 0);
+    };
+    el.oninput = e => {
+      const t = e.target;
+      if (t.dataset.k && t.dataset.f) { const o = $(`[data-pb="${t.dataset.k}"]`, el), x = num(t.value); o.value = isFinite(x) ? fmt(x / t.dataset.f, 2) : ""; }
+      else if (t.dataset.pb) { const o = $(`[data-k="${t.dataset.pb}"]`, el), x = num(t.value) * t.dataset.f; o.value = isFinite(x) ? fmt(x, 2) : ""; }
+    };
+    el.onchange = e => {
+      const t = e.target; if (t.id !== "img" || !t.files[0]) return;
+      const rd = new FileReader();
+      rd.onload = () => { const im = new Image(); im.onload = () => {
+        const k = Math.min(1, 480 / Math.max(im.width, im.height)), c = document.createElement("canvas");
+        c.width = im.width * k; c.height = im.height * k; c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+        img = c.toDataURL("image/jpeg", 0.75); const p = $("#prev", el); p.src = img; p.hidden = false; };
+        im.src = rd.result; };
+      rd.readAsDataURL(t.files[0]);
+    };
+    draw();
+  }
+});
+
+/* ---------- 6. Zapatillas ---------- */
+const LS_Z = "cancha:zapatillas";
+const mesesTxt = (s, fin) => { if (!s) return ""; const a = new Date(s + "T00:00:00"), b = fin ? new Date(fin + "T00:00:00") : new Date(); let m = (b.getFullYear() - a.getFullYear()) * 12 + b.getMonth() - a.getMonth(); if (b.getDate() < a.getDate()) m--; const d = Math.floor((b - a) / 864e5); if (isNaN(d) || d < 0) return ""; return m >= 1 ? m + (m === 1 ? " mes" : " meses") : d + (d === 1 ? " día" : " días"); };
+let memZ = null;
+const loadZ = () => { try { const a = JSON.parse(localStorage.getItem(LS_Z)); if (a) return a; } catch (e) {} return memZ || []; };
+const saveZ = a => { memZ = a; try { localStorage.setItem(LS_Z, JSON.stringify(a)); return true; } catch (e) { return false; } };
+const linkify = s => /^https?:\/\//i.test(s) ? `<a href="${esc(s)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${esc(s)}</a>` : esc(s);
+
+registerTool({
+  id: "zapatillas", name: "Zapatillas",
+  icon: icon('<path d="M2 18v-5l4-6 3 3 3 1 8 4v3z"/><path d="M2 18h20"/>'),
+  render(el) {
+    let Z = loadZ(), v = {t: "list"}, img = null, armed = -1, warn = "";
+    const commit = () => { warn = saveZ(Z) ? "" : "No se pudo guardar: el almacenamiento está lleno o bloqueado (prueba con una foto más pequeña)."; };
+    const card = (z, i) => {
+      const dur = mesesTxt(z.adq, z.inact ? (z.baja || today()) : null);
+      const tallas = [["US", z.us], ["UK", z.uk], ["EU", z.eu]].filter(x => x[1]).map(x => x[0] + " " + esc(x[1])).join(" · ");
+      const rows = [["Tallas", tallas], ["Código", esc(z.code)], ["Tienda", linkify(z.tienda || "")], ["Plazo de recepción", esc(z.envio)], ["Durabilidad", dur ? dur + (z.inact ? " de uso" : " desde la adquisición") : ""], ["Fecha de baja", z.inact ? dmy(z.baja) : ""]].filter(r => r[1]);
+      return `<div class="card" ${z.inact ? 'style="border-style:dashed"' : ""}>
+        <div style="display:flex;gap:12px;align-items:center">${z.img ? `<img class="thumb" src="${z.img}" alt="">` : ""}<div><b style="font-size:18px">${esc(z.n)}</b>${z.inact ? ' <span class="fine">· Inactivas</span>' : ""}<br><span class="fine">${z.adq ? "Adquiridas el " + dmy(z.adq) : ""}${typeof z.p === "number" && isFinite(z.p) ? " · " + fmt(z.p, 2) + " €" : ""}</span></div></div>
+        ${rows.length ? `<table style="word-break:break-word;margin-top:10px">${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table>` : ""}
+        ${z.notas ? `<div class="note"><p>${esc(z.notas).replace(/\n/g, "<br>")}</p></div>` : ""}
+        <div class="acts"><button class="chip" data-act="edit" data-i="${i}">Editar</button><button class="chip" data-act="del" data-i="${i}">${armed === i ? "¿Seguro? Pulsa otra vez" : "Eliminar"}</button></div></div>`;
+    };
+    const formHTML = z => `
+      <h2>${v.i == null ? "Nuevas zapatillas" : "Editar zapatillas"}</h2>
+      <label class="field"><span>Marca y modelo</span><input data-r="n" placeholder="Adidas Adizero Cybersonic M" value="${esc(z.n)}"></label>
+      <div class="field"><span>Foto</span><input type="file" id="img" accept="image/*"><img id="prev" class="thumb" alt="Vista previa" style="margin-top:8px" ${img ? `src="${img}"` : "hidden"}></div>
+      <div class="field"><span>Tallas</span><div class="row3">${[["us", "US", "9"], ["uk", "UK", "8 1/2"], ["eu", "EU", "42 2/3"]].map(([k, l, p]) => `<div><input data-r="${k}" placeholder="${p}" value="${esc(z[k])}" aria-label="Talla ${l}"><small class="fine">${l}</small></div>`).join("")}</div></div>
+      <label class="field"><span>Código</span><input data-r="code" placeholder="IF9123" value="${esc(z.code)}"></label>
+      <label class="field"><span>Fecha de adquisición</span><input type="date" data-r="adq" value="${esc(z.adq)}"></label>
+      <label class="field"><span>Tienda o web de compra</span><input data-r="tienda" placeholder="https://www.mistertennis.com/es/" value="${esc(z.tienda)}"></label>
+      <label class="field"><span>Plazo de recepción</span><input data-r="envio" placeholder="Unos 5 días" value="${esc(z.envio)}"></label>
+      ${field("z_p", "Precio (€)", z.p ?? "", 'data-r="p"')}
+      <label class="check"><input type="checkbox" id="z_inact" ${z.inact ? "checked" : ""}> Inactivas (ya no las uso: dejan de contar el tiempo de durabilidad)</label>
+      <label class="field"><span>Fecha de baja</span><input type="date" data-r="baja" value="${esc(z.baja)}"><small class="fine">Si la dejas vacía, se usará la fecha de hoy al marcarlas como inactivas.</small></label>
+      <label class="field"><span>Notas</span><textarea data-r="notas" placeholder="Dudas entre modelos, sensaciones, ajuste…">${esc(z.notas)}</textarea></label>
+      <button class="btn" data-act="save">Guardar</button><p></p><button class="chip" data-act="cancel">Cancelar</button>`;
+    const draw = () => {
+      if (v.t === "form") el.innerHTML = `<div class="f2">${formHTML(v.i != null ? Z[v.i] : {})}</div>`;
+      else el.innerHTML = `<div class="f2"><h2>Mis zapatillas</h2><p class="lead">Ficha de cada par, con tallas, compra, notas y meses de uso.</p>${warn ? `<p class="note">${warn}</p>` : ""}<button class="btn" data-act="new">Añadir zapatillas</button><p></p>${Z.length ? Z.map((z, i) => [z, i]).sort((a, b) => !!a[0].inact - !!b[0].inact).map(([z, i]) => card(z, i)).join("") : `<p class="lead">Todavía no hay ningún par.</p>`}<p class="fine">Los datos se guardan solo en este dispositivo y navegador.</p></div>`;
+    };
+    el.onclick = e => {
+      const b = e.target.closest("button"); if (!b || !el.contains(b)) return;
+      const a = b.dataset.act, i = +b.dataset.i;
+      if (a === "new") { img = null; v = {t: "form"}; }
+      else if (a === "edit") { img = Z[i].img || null; v = {t: "form", i}; }
+      else if (a === "cancel") v = {t: "list"};
+      else if (a === "save") {
+        const o = gather(el, "data-r"); if (!o.n) { $("[data-r=n]", el).focus(); return; }
+        o.p = num(o.p); o.inact = $("#z_inact", el).checked; o.baja = o.inact ? (o.baja || today()) : "";
+        o.img = img;
+        if (v.i != null) Object.assign(Z[v.i], o); else { o.id = uid(); Z.push(o); }
+        commit(); v = {t: "list"};
+      }
+      else if (a === "del") { if (armed !== i) { armed = i; draw(); return; } Z.splice(i, 1); commit(); }
+      else return;
+      armed = -1; draw(); window.scrollTo(0, 0);
+    };
+    el.onchange = e => {
+      const t = e.target; if (t.id !== "img" || !t.files[0]) return;
+      const rd = new FileReader();
+      rd.onload = () => { const im = new Image(); im.onload = () => {
+        const k = Math.min(1, 480 / Math.max(im.width, im.height)), c = document.createElement("canvas");
+        c.width = im.width * k; c.height = im.height * k; c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+        img = c.toDataURL("image/jpeg", 0.75); const p = $("#prev", el); p.src = img; p.hidden = false; };
+        im.src = rd.result; };
+      rd.readAsDataURL(t.files[0]);
+    };
+    draw();
+  }
+});
+
+/* ---------- 7. Comparador de raquetas ---------- */
+const nums = s => (String(s ?? "").replace(/,/g, ".").match(/\d+(\.\d+)?/g) || []).map(parseFloat);
+const n1 = s => { const a = nums(s); return a.length ? a[0] : NaN; };
+const PAT = /(\d+)\s*[x×*\/]\s*(\d+)/i;
+const fromSaved = r => { const s = r.s || {}, b = nums(s.beam), pt = String(s.pat ?? "").match(PAT);
+  return {n: r.n, head: n1(s.head) / 6.4516, len: n1(s.len), wS: n1(s.wS), bal: n1(s.bal), sw: n1(s.sw), stiff: n1(s.stiff), beam: b.length > 2 ? b[1] : b[0], pat: pt ? pt[1] + "x" + pt[2] : ""}; };
+/* clave, etiqueta, unidad, decimales, umbral, potencia (+1 si más valor = más potencia), texto del mayor, texto del menor */
+const CMP = [
+  ["head", "Tamaño de cabeza", "in²", 1, 3, 1, "más potencia y mayor margen en golpes descentrados", "más control y precisión"],
+  ["len", "Longitud", "cm", 1, 0.5, 1, "más alcance y palanca en el saque, pero menos manejable", "más manejable y rápida de colocar"],
+  ["wS", "Peso con cordaje", "g", 0, 5, 1, "más estabilidad y potencia al impacto y menos vibración, pero más exigente para el brazo", "más maniobrable y rápida, aunque menos estable ante bolas pesadas"],
+  ["bal", "Balance", "cm", 2, 0.4, 1, "más peso en la cabeza: más potencia y estabilidad, pero menos maniobrable en la red", "más peso en el mango: más manejable y mejor en voleas y restos"],
+  ["sw", "Swingweight", "", 0, 4, 1, "más potencia y estabilidad, pero cuesta más acelerarla", "más fácil de mover, ideal para swings cortos y reacciones rápidas"],
+  ["stiff", "Rigidez (RA)", "", 0, 3, 1, "más potencia y respuesta, pero menos confort y más vibración para el brazo", "más sensación y confort, con algo menos de potencia"],
+  ["beam", "Ancho de marco", "mm", 1, 1, 1, "más potencia y rigidez, pero menos sensación", "más control, sensación y penetración"],
+  ["pm", "Patrón de cuerdas", "", 0, 20, -1, "más control y durabilidad del cordaje, con menos spin y menos trampolín", "más spin y trampolín, aunque el cordaje dura menos"]
+];
+registerTool({
+  id: "comparar", name: "Comparar",
+  icon: icon('<path d="M4 8h14l-3-3M20 16H6l3 3"/>'),
+  render(el) {
+    const saved = loadR();
+    const side = x => `<details open><summary>Raqueta ${x.toUpperCase()}</summary>
+      <label class="field"><span>Cargar datos de</span><select id="${x}_sel"><option value="">Introducir manualmente</option>${saved.map((r, i) => `<option value="${i}">${esc(r.n)}</option>`).join("")}</select></label>
+      <label class="field"><span>Nombre</span><input id="${x}_n" placeholder="Opcional"></label>
+      <div class="row">${field(x + "_head", "Cabeza (in²)")}${field(x + "_len", "Longitud (cm)")}</div>
+      <div class="row">${field(x + "_wS", "Peso con cordaje (g)")}${field(x + "_bal", "Balance (cm)")}</div>
+      <div class="row">${field(x + "_sw", "Swingweight")}${field(x + "_stiff", "Rigidez (RA)")}</div>
+      <div class="row">${field(x + "_beam", "Ancho de marco (mm)")}<label class="field"><span>Patrón de cuerdas</span><input id="${x}_pat" placeholder="16x19"></label></div></details>`;
+    el.innerHTML = `<div class="f2"><h2>Comparador de raquetas</h2><p class="lead">Elige dos raquetas guardadas o introduce sus datos a mano. Puedes retocar cualquier valor.</p>${side("a")}${side("b")}<div id="rep"></div></div>`;
+    const g = (x, k) => $("#" + x + "_" + k, el);
+    const fill = (x, o) => { g(x, "n").value = o.n || "";
+      ["head", "len", "wS", "bal", "sw", "stiff", "beam"].forEach(k => { g(x, k).value = isFinite(o[k]) ? fmt(o[k], k === "bal" ? 2 : (k === "head" || k === "len" || k === "beam") ? 1 : 0) : ""; });
+      g(x, "pat").value = o.pat || ""; };
+    const read = x => { const m = g(x, "pat").value.match(PAT), v = k => num(g(x, k).value);
+      return {n: g(x, "n").value.trim() || "Raqueta " + x.toUpperCase(), head: v("head"), len: v("len"), wS: v("wS"), bal: v("bal"), sw: v("sw"), stiff: v("stiff"), beam: v("beam"), pm: m ? m[1] * m[2] : NaN, pt: m ? m[1] + "×" + m[2] : ""}; };
+    const run = () => {
+      const A = read("a"), B = read("b"); let sA = 0, sB = 0, nd = 0, rows = "", notes = "", same = [], miss = [];
+      CMP.forEach(([k, l, u, d, thr, pw, hi, lo]) => {
+        const a = A[k], b = B[k], oa = isFinite(a), ob = isFinite(b), un = u ? " " + u : "";
+        const sh = (o, v) => isFinite(v) ? (k === "pm" ? o.pt : fmt(v, d) + un) : "—";
+        const df = oa && ob ? a - b : NaN;
+        const dt = !isFinite(df) || k === "pm" ? "—" : (df > 0 ? "+" : df < 0 ? "−" : "") + fmt(Math.abs(df), d) + un;
+        if (oa || ob) rows += `<tr><td>${l}</td><td>${sh(A, a)}</td><td>${sh(B, b)}</td><td>${dt}</td></tr>`;
+        if (oa !== ob) { miss.push(l); return; }
+        if (!oa) return;
+        if (Math.abs(df) < thr) { same.push(l); return; }
+        nd++; const H = df > 0 ? A : B, L = df > 0 ? B : A;
+        if ((pw > 0 ? H : L) === A) sA++; else sB++;
+        const ad = Math.abs(df);
+        notes += `<p><b>${l}:</b> ${k === "pm" ? `${esc(H.n)} (${H.pt}) tiene el patrón más cerrado que ${esc(L.n)} (${L.pt}).` : `${esc(H.n)} tiene ${fmt(ad, d)}${un} más que ${esc(L.n)}${k === "bal" ? " (≈ " + fmt(ad / 0.3175, 1) + " puntos)" : ""}.`} <b>${esc(H.n)}:</b> ${hi}. <b>${esc(L.n)}:</b> ${lo}.</p>`;
+      });
+      if (!rows) { $("#rep", el).innerHTML = `<p class="lead">Introduce algún dato en las dos raquetas para ver el informe.</p>`; return; }
+      const W = sA > sB ? A : B, Lw = sA > sB ? B : A, top = Math.max(sA, sB);
+      const verdict = nd === 0 ? "No hay diferencias relevantes con los datos introducidos: cabe esperar un comportamiento muy parecido."
+        : sA === sB ? "Las diferencias se reparten: cada raqueta destaca en aspectos distintos y ninguna es claramente más potente que la otra."
+        : `<b>${esc(W.n)}</b> tiene un perfil más orientado a la potencia y la estabilidad (${top} de ${nd} diferencias relevantes), mientras que <b>${esc(Lw.n)}</b> resulta más maniobrable y controlable.`;
+      $("#rep", el).innerHTML = `<h2 style="margin-top:20px">Informe</h2><div class="note"><p>${verdict}</p></div>
+        <table style="font-size:14px"><tr><th>Dato</th><th>${esc(A.n)}</th><th>${esc(B.n)}</th><th>A − B</th></tr>${rows}</table>
+        ${notes ? `<h2>Impacto en el juego</h2>${notes}` : ""}
+        ${same.length ? `<p class="fine">Sin diferencias relevantes en: ${same.join(", ").toLowerCase()}.</p>` : ""}
+        ${miss.length ? `<p class="fine">No se han podido comparar por falta de datos en una de las raquetas: ${miss.join(", ").toLowerCase()}.</p>` : ""}
+        <p class="fine">Reglas generales orientativas: la sensación real depende también del cordaje, la tensión y de tu técnica.</p>`;
+    };
+    el.onchange = e => { const t = e.target; if (!/_sel$/.test(t.id)) return; const x = t.id[0];
+      if (t.value === "") fill(x, {n: ""}); else fill(x, fromSaved(saved[+t.value])); run(); };
+    el.oninput = run;
+    [["a", 0], ["b", 1]].forEach(([x, i]) => { if (saved[i]) { g(x, "sel").value = String(i); fill(x, fromSaved(saved[i])); } });
+    run();
+  }
+});
+
+/* ---------- 8. Condiciones de juego ---------- */
+const BFT = [[1, "calma"], [6, "ventolina"], [12, "flojito"], [20, "flojo"], [29, "bonancible"], [39, "fresquito"], [50, "fresco"], [62, "frescachón"], [75, "temporal"]];
+const beaufort = w => { for (let b = 0; b < BFT.length; b++) if (w < BFT[b][0]) return b + " Beaufort (" + BFT[b][1] + ")"; return "9 o más Beaufort (temporal fuerte)"; };
+const KB = 0.55 * Math.PI * Math.pow(0.0667 / 2, 2) / (2 * 0.057); /* Cd·A/(2m) en m²/kg; k = ρ·KB en 1/m */
+const R0 = 1.225, XB = 18;
+const condCalc = i => {
+  const Tk = i.T + 273.15, es = 6.1078 * Math.pow(10, 7.5 * i.T / (i.T + 237.3)), pv = i.rh / 100 * es, pd = i.p - pv;
+  const rho = pd * 100 / (287.05 * Tk) + pv * 100 / (461.495 * Tk), rhoD = i.p * 100 / (287.05 * Tk);
+  const gam = Math.log(i.rh / 100) + 17.27 * i.T / (237.7 + i.T);
+  const o = {rho, dR: (rho / R0 - 1) * 100, Td: 237.7 * gam / (17.27 - gam), pv, dV: (1 - rho / rhoD) * 100,
+    hd: (1 - Math.pow(rho / R0, 1 / 4.25588)) / 2.25577e-5, dP: (Tk / 293.15 - 1) * 100};
+  if (isFinite(i.h)) { o.rhoI = R0 * Math.pow(1 - 2.25577e-5 * i.h, 4.25588); o.pI = 1013.25 * Math.pow(1 - 2.25577e-5 * i.h, 5.25588); }
+  return o;
+};
+const arrV = (rho, v0) => v0 * Math.exp(-rho * KB * XB);
+
+registerTool({
+  id: "condiciones", name: "Condiciones",
+  icon: icon('<path d="M14 14.8V4a2 2 0 0 0-4 0v10.8a4 4 0 1 0 4 0z"/>'),
+  render(el) {
+    el.innerHTML = `<div class="f2"><h2>Condiciones de juego</h2><p class="lead">Introduce las condiciones medidas en la pista para obtener un informe técnico de su efecto sobre la bola y el juego.</p>
+      <div class="row">${field("c_T", "Temperatura (°C)", "20")}${field("c_rh", "Humedad relativa (%)", "60")}</div>
+      <div class="row">${field("c_p", "Presión medida en la pista", "1013")}<label class="field"><span>Unidad</span><select id="c_u">${P_UNITS.map((u, i) => `<option value="${i}">${u[0]}</option>`).join("")}</select></label></div>
+      <div class="row">${field("c_h", "Altitud de la pista (m, opcional)")}${field("c_w", "Viento medio (km/h)", "0")}</div>
+      <div class="row">${field("c_g", "Racha máxima (km/h, opcional)")}<label class="field"><span>Dirección del viento</span><select id="c_a"><option value="0">Longitudinal (0°)</option><option value="45">Diagonal (45°)</option><option value="90">Transversal (90°)</option></select></label></div>
+      <p class="fine">La dirección se mide respecto al eje largo de la pista (de fondo a fondo).</p><div id="c_rep"></div></div>`;
+    const q = id => $("#" + id, el), sg = (v, d = 1) => (v > 0.04 ? "+" : v < -0.04 ? "−" : "") + fmt(Math.abs(v), d);
+    const run = () => {
+      const i = {T: num(q("c_T").value), rh: num(q("c_rh").value), h: num(q("c_h").value), w: num(q("c_w").value) || 0, g: num(q("c_g").value), a: +q("c_a").value};
+      i.p = num(q("c_p").value) * P_UNITS[+q("c_u").value][1];
+      const out = q("c_rep");
+      if (![i.T, i.rh, i.p].every(isFinite) || i.rh < 0 || i.rh > 100) { out.innerHTML = `<p class="lead">Introduce temperatura, humedad (0–100 %) y presión para ver el informe.</p>`; return; }
+      if (i.p < 600 || i.p > 1100) { out.innerHTML = `<p class="note"><b>Presión fuera de rango (${fmt(i.p, 0)} hPa).</b> Comprueba el valor y la unidad.</p>`; return; }
+      i.rh = Math.max(1, i.rh);
+      const o = condCalc(i), th = i.a * Math.PI / 180, wL = i.w * Math.cos(th), wT = i.w * Math.sin(th);
+      const fast = [o.dR <= -3, i.T >= 25, i.rh <= 40].filter(Boolean).length, slow = [o.dR >= 3, i.T <= 12, i.rh >= 75].filter(Boolean).length;
+      const speed = fast - slow >= 1 ? "rápidas" : slow - fast >= 1 ? "lentas" : "neutras";
+      const wl = i.w < 8 ? "sin incidencia táctica relevante" : i.w < 20 ? "moderado" : i.w < 35 ? "fuerte: condiciona la elección de golpes y los márgenes" : "extremo: juego muy condicionado";
+      const refs = [["Golpe de fondo", 100], ["Saque", 180]];
+      const aero = refs.map(([n, v]) => { const s = arrV(R0, v), a = arrV(o.rho, v); return `<tr><td>${n} (${v} km/h)</td><td>${fmt(s, 1)}</td><td>${fmt(a, 1)}</td><td>${sg(a - s)}</td></tr>`; }).join("");
+      const wind = i.w < 1 ? `<p>Calma: sin efecto aerodinámico del viento.</p>` : `<p>${beaufort(i.w)}; nivel ${wl}. Componente longitudinal ${fmt(wL, 1)} km/h; transversal ${fmt(wT, 1)} km/h.</p>
+        <table style="font-size:14px"><tr><th>Referencia</th><th>Resist. a favor</th><th>Resist. en contra</th><th>Deriva lat.</th></tr>${refs.map(([n, v]) => `<tr><td>${n}</td><td>${wL > 0.5 ? sg(((1 - wL / v) ** 2 - 1) * 100, 0) + " %" : "—"}</td><td>${wL > 0.5 ? sg(((1 + wL / v) ** 2 - 1) * 100, 0) + " %" : "—"}</td><td>${wT > 0.5 ? fmt(50 * o.rho * KB * (wT / 3.6) * XB * XB / (v / 3.6), 0) + " cm" : "—"}</td></tr>`).join("")}</table>
+        <p class="fine">Variación instantánea de la fuerza de arrastre con la bola viajando a favor o en contra del viento, y desplazamiento lateral hacia sotavento tras ${XB} m.${isFinite(i.g) && i.g > i.w ? ` Con la racha de ${fmt(i.g, 0)} km/h, la resistencia en contra de un golpe de fondo sube ${sg(((1 + i.g * Math.cos(th) / 100) ** 2 - 1) * 100, 0)} %.` : ""}</p>`;
+      const tTxt = i.T <= 10 ? "frío marcado: bola menos viva, bote claramente más bajo y salida más lenta de la raqueta" : i.T <= 17 ? "ambiente fresco: bote algo reducido y bola algo más lenta" : i.T <= 26 ? "intervalo de referencia: sin desviaciones relevantes" : i.T <= 32 ? "calor: bola más viva y bote más alto" : "calor intenso: bola muy viva, bote alto y aire poco denso";
+      const hTxt = i.rh >= 85 ? "humedad muy alta: el fieltro absorbe agua, la bola gana masa y pierde velocidad y bote (bola «pesada»)" : i.rh >= 70 ? "humedad alta: ligero apesadamiento de la bola" : i.rh >= 40 ? "humedad en rango habitual: efecto despreciable sobre la bola" : "aire seco: sin efecto adverso sobre la bola";
+      const cond = i.T - o.Td <= 2 ? `<p><b>Riesgo de condensación:</b> la temperatura está a ${fmt(i.T - o.Td, 1)} °C del punto de rocío; posible humedad en la superficie y en las bolas.</p>` : "";
+      const tac = [];
+      tac.push(speed === "rápidas" ? "<b>Pista rápida.</b> La bola conserva velocidad y bota vivo. Más margen sobre la red y más liftado para controlar la profundidad; el saque y el primer golpe ganan rentabilidad; en el resto, reducir el backswing y acortar la preparación."
+        : speed === "lentas" ? "<b>Pista lenta.</b> La bola pierde velocidad y bota menos, y el golpe plano penetra menos. Conviene construir el punto, acelerar la cabeza de la raqueta, jugar más profundo y combinar bolas cortas con subidas a la red."
+        : "<b>Condiciones neutras.</b> Sin ajuste táctico derivado del aire; manda el estilo de juego y la superficie.");
+      if (i.w >= 8) {
+        if (wL >= 4) tac.push(`<b>Viento longitudinal (${fmt(wL, 0)} km/h).</b> Con el viento a favor (de espalda a quien golpea) la bola se alarga: más altura y liftado, menos velocidad de golpe; el globo se pasa con facilidad y la dejada es más arriesgada. Con el viento en contra la bola se frena y cae antes: golpear más tenso y más fuerte; el globo se queda corto y la dejada gana eficacia. Cada cambio de lado invierte la situación, así que conviene replantear alturas y márgenes.${i.w >= 20 ? " Con este viento merece la pena valorar la elección de lado en el sorteo." : ""}`);
+        if (wT >= 4) tac.push(`<b>Viento transversal (${fmt(wT, 0)} km/h).</b> La bola deriva hacia sotavento (el lado hacia el que sopla el viento): apuntar hacia barlovento y dejar más margen en las líneas de sotavento.`);
+        if (i.w >= 20) tac.push("<b>Saque.</b> El lanzamiento de bola se desvía con el viento: lanzar más bajo y con menos recorrido, y ajustar la dirección del saque.");
+      }
+      if (isFinite(i.g) && i.g - i.w >= 8) tac.push("<b>Rachas.</b> La variación del viento entre golpes dificulta la regularidad: priorizar márgenes amplios y golpes estables frente a los ajustados.");
+      out.innerHTML = `<h2 style="margin-top:20px">Informe técnico de condiciones de juego</h2>
+        <div class="note"><p>Condiciones globalmente <b>${speed}</b> para el juego de fondo. Densidad del aire ${fmt(o.rho, 3)} kg/m³ (${sg(o.dR)} % respecto a la referencia estándar de 1,225 kg/m³), temperatura de ${fmt(i.T, 1)} °C y ${i.w < 1 ? "calma" : "viento de " + beaufort(i.w)}.</p></div>
+        <h2>1. Parámetros atmosféricos</h2>
+        <table><tr><th>Magnitud</th><th>Valor</th></tr>
+        <tr><td>Presión medida</td><td>${fmt(i.p, 1)} hPa</td></tr>
+        <tr><td>Presión parcial de vapor</td><td>${fmt(o.pv, 1)} hPa</td></tr>
+        <tr><td>Punto de rocío</td><td>${fmt(o.Td, 1)} °C</td></tr>
+        <tr><td>Densidad del aire</td><td>${fmt(o.rho, 3)} kg/m³</td></tr>
+        <tr><td>Altitud de densidad</td><td>${fmt(o.hd, 0)} m</td></tr>
+        ${isFinite(o.pI) ? `<tr><td>Presión estándar a ${fmt(i.h, 0)} m</td><td>${fmt(o.pI, 1)} hPa (${sg(i.p - o.pI)} hPa)</td></tr><tr><td>Densidad estándar a esa altitud</td><td>${fmt(o.rhoI, 3)} kg/m³</td></tr>` : ""}</table>
+        <p class="fine">El vapor de agua reduce la densidad un ${fmt(o.dV, 2)} % respecto al aire seco a la misma presión y temperatura.${isFinite(o.pI) ? " La desviación de presión indica cuánto se aleja el día de la atmósfera estándar a esa altitud." : ""}</p>
+        <h2>2. Efecto aerodinámico del aire</h2>
+        <p>La resistencia del aire y la fuerza de Magnus (efecto) son proporcionales a la densidad. Con ${sg(o.dR)} % de densidad, ambas varían en esa misma proporción: ${o.dR <= -3 ? "la bola pierde menos velocidad y los efectos hacen algo menos de curva." : o.dR >= 3 ? "la bola frena más y los efectos se notan más." : "diferencia pequeña, difícilmente perceptible en el juego."}</p>
+        <table style="font-size:14px"><tr><th>Golpe</th><th>Estándar</th><th>Actual</th><th>Δ</th></tr>${aero}</table>
+        <p class="fine">Velocidad (km/h) al cabo de ${XB} m (aprox. hasta el primer bote) con la misma velocidad de salida.</p>
+        <h2>3. Efecto del viento</h2>${wind}
+        <h2>4. Bola y bote</h2>
+        <p><b>Temperatura (${fmt(i.T, 1)} °C):</b> ${tTxt}. La presión interna de una bola presurizada ya aclimatada varía unos ${sg(o.dP)} % respecto a 20 °C (proporcional a la temperatura absoluta).</p>
+        <p><b>Humedad (${fmt(i.rh, 0)} %):</b> ${hTxt}.</p>${cond}
+        <h2>5. Recomendaciones tácticas</h2>${tac.map(t => `<p>${t}</p>`).join("")}
+        <h2>6. Hipótesis y limitaciones</h2>
+        <p class="fine">Densidad calculada con la ecuación de los gases ideales para aire húmedo (fórmula de Magnus-Tetens para el vapor). Trayectoria con modelo balístico simplificado: bola de 57 g y 6,67 cm, coeficiente de resistencia constante de 0,55, sin gravedad, giro ni bote. Los valores indican órdenes de magnitud y comparaciones relativas; el comportamiento real también depende de la superficie, del estado de las bolas y del tipo de golpe.</p>`;
+    };
+    el.oninput = el.onchange = run;
+    run();
+  }
+});
+
+/* ---------- Navegación ---------- */
+const nav = $("#nav"), view = $("#view");
+function show(id) {
+  const t = TOOLS.find(x => x.id === id) || TOOLS[0];
+  nav.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.dataset.id === t.id));
+  t.render(view);
+  try { localStorage.setItem("cancha:tool", t.id); } catch (e) {}
+  window.scrollTo(0, 0);
+}
+nav.innerHTML = TOOLS.map(t => `<button role="tab" data-id="${t.id}">${t.icon}${t.name}</button>`).join("");
+nav.querySelectorAll("button").forEach(b => b.onclick = () => show(b.dataset.id));
+let last = null; try { last = localStorage.getItem("cancha:tool"); } catch (e) {}
+show(last);
+/* ---------- Copia de seguridad (exportar / importar) ---------- */
+(() => {
+  const msg = t => { $("#bkm").textContent = t; };
+  const showText = txt => { const a = $("#bkt"); a.hidden = false; a.value = txt; a.focus(); a.select(); msg("Copia el texto y guárdalo en un archivo .json (por ejemplo, en una nota)."); };
+  let pending = null;
+  $("#bkx").onclick = async () => {
+    const txt = JSON.stringify({app: "Tennis Lab Tools", formato: 1, version: VERSION, fecha: new Date().toISOString(), raquetas: loadR(), zapatillas: loadZ()});
+    let dl = null; try { dl = await claude.use("downloads"); } catch (e) {}
+    if (!dl) {
+      try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([txt], {type: "application/json"})); a.download = "tennis-lab-tools-" + today() + ".json"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); msg("Copia descargada."); }
+      catch (e) { showText(txt); }
+      return;
+    }
+    try { await dl.save({filename: "tennis-lab-tools-" + today() + ".json", data: txt}); msg("Copia guardada."); }
+    catch (e) { if (e && e.code === "declined") msg("Descarga cancelada."); else showText(txt); }
+  };
+  $("#bki").onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const o = JSON.parse(rd.result);
+        if (o.app !== "Tennis Lab Tools") throw 0;
+        pending = {r: Array.isArray(o.raquetas) ? o.raquetas : [], z: Array.isArray(o.zapatillas) ? o.zapatillas : []};
+        msg(`Copia con ${pending.r.length} raqueta(s) y ${pending.z.length} par(es) de zapatillas. Al restaurarla se reemplazarán los datos actuales.`);
+        $("#bkc").hidden = false;
+      } catch (err) { pending = null; $("#bkc").hidden = true; msg("El archivo no es una copia válida de Tennis Lab Tools."); }
+    };
+    rd.readAsText(f); e.target.value = "";
+  };
+  $("#bkc").onclick = () => {
+    if (!pending) return;
+    const ok = saveR(pending.r) & saveZ(pending.z);
+    $("#bkc").hidden = true; pending = null;
+    msg(ok ? "Copia restaurada." : "No se pudo guardar la copia en este navegador.");
+    show(nav.querySelector('[aria-selected="true"]').dataset.id);
+  };
+})();
+/* ---------- Instalación y uso sin conexión ---------- */
+if ("serviceWorker" in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
