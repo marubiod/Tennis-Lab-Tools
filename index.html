@@ -69,6 +69,16 @@ details{margin:0 0 6px}
 nav{overflow-x:auto}
 nav button{font-size:11px;min-width:62px;padding-left:2px;padding-right:2px}
 .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pimg{display:block;width:100%;max-height:260px;object-fit:contain;background:var(--bg);border:2px solid var(--line);border-radius:12px;cursor:zoom-in}
+#prev{margin-top:8px;max-height:300px}
+input[type=range]{min-height:36px;padding:0;border:0;background:none;accent-color:var(--accent)}
+[aria-pressed="true"]{background:var(--ball);color:var(--on-ball);border-color:var(--ball)}
+#viewer{position:fixed;inset:0;z-index:30;background:rgba(5,10,18,.95);display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+#viewer[hidden]{display:none}
+#vbar{display:flex;gap:12px;align-items:center;padding:10px 14px;color:#fff;font-weight:700}
+#vbar input{flex:1}
+#vbox{flex:1;min-height:0;overflow:auto;display:flex;touch-action:pan-x pan-y pinch-zoom}
+#vimg{margin:auto;max-width:none;height:auto;object-fit:contain}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -82,9 +92,10 @@ nav button{font-size:11px;min-width:62px;padding-left:2px;padding-right:2px}
 <p>Valores orientativos. La app se amplía registrando nuevas herramientas.</p></footer>
 <nav id="nav" role="tablist" aria-label="Herramientas"></nav>
 
+<div id="viewer" hidden role="dialog" aria-modal="true" aria-label="Visor de imagen"><div id="vbar"><button class="chip" id="vclose">Cerrar</button><span aria-hidden="true">−</span><input type="range" id="vz" min="1" max="4" step="0.1" value="1" aria-label="Ampliación"><span aria-hidden="true">+</span></div><div id="vbox"><img id="vimg" alt=""></div></div>
 <script>
 "use strict";
-const VERSION = "1.6.0";
+const VERSION = "1.7.0";
 document.getElementById("ver").textContent = VERSION;
 
 /* ---------- Registro de herramientas: añadir una función nueva = registrar un objeto más ---------- */
@@ -275,7 +286,7 @@ registerTool({
     const card = (r, i) => {
       const L = last(r), due = L.h >= L.max, pct = Math.min(100, (L.h || 0) / (L.max || 1) * 100), rows = specRows(r.s || {});
       return `<div class="card ${due ? "due" : ""}">
-        <div style="display:flex;gap:12px;align-items:center">${r.img ? `<img class="thumb" src="${r.img}" alt="">` : ""}<div><b style="font-size:18px">${esc(r.n)}</b><br><span class="fine">${r.adq ? "Adquirida el " + dmy(r.adq) : ""}${r.tienda ? " en " + esc(r.tienda) : ""}</span></div></div>
+        ${r.img ? `<img class="pimg" src="${r.img}" alt="Foto de ${esc(r.n)}" tabindex="0">` : ""}<div style="display:flex;gap:12px;align-items:center;margin-top:10px"><div><b style="font-size:18px">${esc(r.n)}</b><br><span class="fine">${r.adq ? "Adquirida el " + dmy(r.adq) : ""}${r.tienda ? " en " + esc(r.tienda) : ""}</span></div></div>
         ${rows || r.notas ? `<details><summary>Características y notas</summary>${rows ? `<table>${rows}</table>` : ""}${r.notas ? `<p class="fine">${esc(r.notas)}</p>` : ""}</details>` : ""}
         <p style="margin:10px 0 0"><b>Cordaje actual</b> (${dmy(L.f)})<br>${sum(L)}</p>
         <div class="bar" role="img" aria-label="${nv(L.h || 0)} de ${nv(L.max)} horas"><i style="width:${pct}%"></i></div>
@@ -287,7 +298,8 @@ registerTool({
     const formHTML = r => { const s = r.s || {}, nuevo = v.i == null; return `
       <h2>${nuevo ? "Nueva raqueta" : "Editar raqueta"}</h2>
       <label class="field"><span>Marca y modelo</span><input data-r="n" placeholder="Yonex EZONE 100" value="${esc(r.n)}"></label>
-      <div class="field"><span>Foto</span><input type="file" id="img" accept="image/*"><img id="prev" class="thumb" alt="Vista previa" style="margin-top:8px" ${img ? `src="${img}"` : "hidden"}></div>
+      <div class="field"><span>Foto (toca la imagen para ampliarla)</span><input type="file" id="img" accept="image/*"><img id="prev" class="pimg" alt="Vista previa" tabindex="0" ${img ? `src="${img}"` : "hidden"}>
+        <div id="imgtools" ${img ? "" : "hidden"}><label class="field" style="margin:10px 0 0"><span>Contraste</span><input type="range" id="i_c" min="50" max="200" value="100"></label><label class="field" style="margin:6px 0 0"><span>Brillo</span><input type="range" id="i_b" min="-50" max="50" value="0"></label><div class="acts" style="margin-top:10px"><button type="button" class="chip" data-img="auto" aria-pressed="false">Mejora automática</button><button type="button" class="chip" data-img="reset">Restablecer</button></div></div></div>
       <details open><summary>Características</summary>${SPECS.map(x => pair(x, s[x[0]] ?? "")).join("")}<p class="fine">Cada medida tiene dos casillas enlazadas: escribe en cualquiera y se convierte sola.</p>${TXT.map(x => tf(x, s[x[0]] ?? "")).join("")}</details>
       <details><summary>Compra y notas</summary>
         <label class="field"><span>Fecha de adquisición</span><input type="date" data-r="adq" value="${esc(r.adq)}"></label>
@@ -304,8 +316,8 @@ registerTool({
     el.onclick = e => {
       const b = e.target.closest("button"); if (!b || !el.contains(b)) return;
       const a = b.dataset.act, i = +b.dataset.i;
-      if (a === "new") { img = null; v = {t: "form"}; }
-      else if (a === "edit") { img = R[i].img || null; v = {t: "form", i}; }
+      if (a === "new") { img = null; ImgTool.load(null, d => { img = d; }); v = {t: "form"}; }
+      else if (a === "edit") { img = R[i].img || null; ImgTool.load(img, d => { img = d; }); v = {t: "form", i}; }
       else if (a === "enc") v = {t: "enc", i};
       else if (a === "cancel") v = {t: "list"};
       else if (a === "save") {
@@ -328,16 +340,7 @@ registerTool({
       if (t.dataset.k && t.dataset.f) { const o = $(`[data-pb="${t.dataset.k}"]`, el), x = num(t.value); o.value = isFinite(x) ? fmt(x / t.dataset.f, 2) : ""; }
       else if (t.dataset.pb) { const o = $(`[data-k="${t.dataset.pb}"]`, el), x = num(t.value) * t.dataset.f; o.value = isFinite(x) ? fmt(x, 2) : ""; }
     };
-    el.onchange = e => {
-      const t = e.target; if (t.id !== "img" || !t.files[0]) return;
-      const rd = new FileReader();
-      rd.onload = () => { const im = new Image(); im.onload = () => {
-        const k = Math.min(1, 480 / Math.max(im.width, im.height)), c = document.createElement("canvas");
-        c.width = im.width * k; c.height = im.height * k; c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
-        img = c.toDataURL("image/jpeg", 0.75); const p = $("#prev", el); p.src = img; p.hidden = false; };
-        im.src = rd.result; };
-      rd.readAsDataURL(t.files[0]);
-    };
+    el.onchange = e => { const t = e.target; if (t.id === "img" && t.files[0]) ImgTool.file(t.files[0]); };
     draw();
   }
 });
@@ -361,7 +364,7 @@ registerTool({
       const tallas = [["US", z.us], ["UK", z.uk], ["EU", z.eu]].filter(x => x[1]).map(x => x[0] + " " + esc(x[1])).join(" · ");
       const rows = [["Tallas", tallas], ["Código", esc(z.code)], ["Tienda", linkify(z.tienda || "")], ["Plazo de recepción", esc(z.envio)], ["Durabilidad", dur ? dur + (z.inact ? " de uso" : " desde la adquisición") : ""], ["Fecha de baja", z.inact ? dmy(z.baja) : ""]].filter(r => r[1]);
       return `<div class="card" ${z.inact ? 'style="border-style:dashed"' : ""}>
-        <div style="display:flex;gap:12px;align-items:center">${z.img ? `<img class="thumb" src="${z.img}" alt="">` : ""}<div><b style="font-size:18px">${esc(z.n)}</b>${z.inact ? ' <span class="fine">· Inactivas</span>' : ""}<br><span class="fine">${z.adq ? "Adquiridas el " + dmy(z.adq) : ""}${typeof z.p === "number" && isFinite(z.p) ? " · " + fmt(z.p, 2) + " €" : ""}</span></div></div>
+        ${z.img ? `<img class="pimg" src="${z.img}" alt="Foto de ${esc(z.n)}" tabindex="0">` : ""}<div style="display:flex;gap:12px;align-items:center;margin-top:10px"><div><b style="font-size:18px">${esc(z.n)}</b>${z.inact ? ' <span class="fine">· Inactivas</span>' : ""}<br><span class="fine">${z.adq ? "Adquiridas el " + dmy(z.adq) : ""}${typeof z.p === "number" && isFinite(z.p) ? " · " + fmt(z.p, 2) + " €" : ""}</span></div></div>
         ${rows.length ? `<table style="word-break:break-word;margin-top:10px">${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table>` : ""}
         ${z.notas ? `<div class="note"><p>${esc(z.notas).replace(/\n/g, "<br>")}</p></div>` : ""}
         <div class="acts"><button class="chip" data-act="edit" data-i="${i}">Editar</button><button class="chip" data-act="del" data-i="${i}">${armed === i ? "¿Seguro? Pulsa otra vez" : "Eliminar"}</button></div></div>`;
@@ -369,7 +372,8 @@ registerTool({
     const formHTML = z => `
       <h2>${v.i == null ? "Nuevas zapatillas" : "Editar zapatillas"}</h2>
       <label class="field"><span>Marca y modelo</span><input data-r="n" placeholder="Adidas Adizero Cybersonic M" value="${esc(z.n)}"></label>
-      <div class="field"><span>Foto</span><input type="file" id="img" accept="image/*"><img id="prev" class="thumb" alt="Vista previa" style="margin-top:8px" ${img ? `src="${img}"` : "hidden"}></div>
+      <div class="field"><span>Foto (toca la imagen para ampliarla)</span><input type="file" id="img" accept="image/*"><img id="prev" class="pimg" alt="Vista previa" tabindex="0" ${img ? `src="${img}"` : "hidden"}>
+        <div id="imgtools" ${img ? "" : "hidden"}><label class="field" style="margin:10px 0 0"><span>Contraste</span><input type="range" id="i_c" min="50" max="200" value="100"></label><label class="field" style="margin:6px 0 0"><span>Brillo</span><input type="range" id="i_b" min="-50" max="50" value="0"></label><div class="acts" style="margin-top:10px"><button type="button" class="chip" data-img="auto" aria-pressed="false">Mejora automática</button><button type="button" class="chip" data-img="reset">Restablecer</button></div></div></div>
       <div class="field"><span>Tallas</span><div class="row3">${[["us", "US", "9"], ["uk", "UK", "8 1/2"], ["eu", "EU", "42 2/3"]].map(([k, l, p]) => `<div><input data-r="${k}" placeholder="${p}" value="${esc(z[k])}" aria-label="Talla ${l}"><small class="fine">${l}</small></div>`).join("")}</div></div>
       <label class="field"><span>Código</span><input data-r="code" placeholder="IF9123" value="${esc(z.code)}"></label>
       <label class="field"><span>Fecha de adquisición</span><input type="date" data-r="adq" value="${esc(z.adq)}"></label>
@@ -387,8 +391,8 @@ registerTool({
     el.onclick = e => {
       const b = e.target.closest("button"); if (!b || !el.contains(b)) return;
       const a = b.dataset.act, i = +b.dataset.i;
-      if (a === "new") { img = null; v = {t: "form"}; }
-      else if (a === "edit") { img = Z[i].img || null; v = {t: "form", i}; }
+      if (a === "new") { img = null; ImgTool.load(null, d => { img = d; }); v = {t: "form"}; }
+      else if (a === "edit") { img = Z[i].img || null; ImgTool.load(img, d => { img = d; }); v = {t: "form", i}; }
       else if (a === "cancel") v = {t: "list"};
       else if (a === "save") {
         const o = gather(el, "data-r"); if (!o.n) { $("[data-r=n]", el).focus(); return; }
@@ -401,16 +405,7 @@ registerTool({
       else return;
       armed = -1; draw(); window.scrollTo(0, 0);
     };
-    el.onchange = e => {
-      const t = e.target; if (t.id !== "img" || !t.files[0]) return;
-      const rd = new FileReader();
-      rd.onload = () => { const im = new Image(); im.onload = () => {
-        const k = Math.min(1, 480 / Math.max(im.width, im.height)), c = document.createElement("canvas");
-        c.width = im.width * k; c.height = im.height * k; c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
-        img = c.toDataURL("image/jpeg", 0.75); const p = $("#prev", el); p.src = img; p.hidden = false; };
-        im.src = rd.result; };
-      rd.readAsDataURL(t.files[0]);
-    };
+    el.onchange = e => { const t = e.target; if (t.id === "img" && t.files[0]) ImgTool.file(t.files[0]); };
     draw();
   }
 });
@@ -584,6 +579,81 @@ nav.innerHTML = TOOLS.map(t => `<button role="tab" data-id="${t.id}">${t.icon}${
 nav.querySelectorAll("button").forEach(b => b.onclick = () => show(b.dataset.id));
 let last = null; try { last = localStorage.getItem("cancha:tool"); } catch (e) {}
 show(last);
+/* ---------- Imágenes: ajuste de contraste/brillo y visor ampliable ---------- */
+const adjustPixels = (p, n, c, b, auto) => {
+  let lo = 0, hi = 255;
+  if (auto) {
+    const hist = new Uint32Array(256);
+    for (let i = 0; i < p.length; i += 4) hist[(p[i] * 0.299 + p[i + 1] * 0.587 + p[i + 2] * 0.114) | 0]++;
+    let a = 0; for (lo = 0; lo < 255; lo++) { a += hist[lo]; if (a >= n * 0.01) break; }
+    a = 0; for (hi = 255; hi > 0; hi--) { a += hist[hi]; if (a >= n * 0.01) break; }
+    if (hi - lo < 20) { lo = 0; hi = 255; }
+  }
+  const k = c / 100, off = b * 2.55;
+  for (let i = 0; i < p.length; i += 4) for (let j = 0; j < 3; j++) {
+    let v = p[i + j]; if (auto) v = (v - lo) * 255 / (hi - lo);
+    v = (v - 128) * k + 128 + off; p[i + j] = v < 0 ? 0 : v > 255 ? 255 : v;
+  }
+};
+const ImgTool = {
+  src: null, cb: null, c: 100, b: 0, auto: false, t: 0,
+  reset() { this.c = 100; this.b = 0; this.auto = false; },
+  sync() {
+    const c = $("#i_c"), b = $("#i_b"), a = document.querySelector('[data-img="auto"]');
+    if (c) c.value = this.c; if (b) b.value = this.b; if (a) a.setAttribute("aria-pressed", String(this.auto));
+  },
+  load(data, cb) {
+    this.cb = cb; this.src = null; this.reset();
+    if (!data) return;
+    const im = new Image(); im.onload = () => { ImgTool.src = im; }; im.src = data;
+  },
+  file(f) {
+    const rd = new FileReader();
+    rd.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        const k = Math.min(1, 800 / Math.max(im.width, im.height)), c = document.createElement("canvas");
+        c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+        ImgTool.src = c; ImgTool.reset(); ImgTool.sync(); ImgTool.render();
+      };
+      im.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  },
+  render() {
+    const s = this.src; if (!s) return;
+    const w = s.width, h = s.height, c = document.createElement("canvas"); c.width = w; c.height = h;
+    const x = c.getContext("2d", {willReadFrequently: true}); x.drawImage(s, 0, 0);
+    if (this.c !== 100 || this.b !== 0 || this.auto) { const d = x.getImageData(0, 0, w, h); adjustPixels(d.data, w * h, this.c, this.b, this.auto); x.putImageData(d, 0, 0); }
+    const out = c.toDataURL("image/jpeg", 0.82);
+    if (this.cb) this.cb(out);
+    const pv = $("#prev"); if (pv) { pv.src = out; pv.hidden = false; }
+    const tl = $("#imgtools"); if (tl) tl.hidden = false;
+  }
+};
+const viewer = {
+  open(im) { const v = $("#vimg"); v.src = im.src; v.alt = im.alt || ""; $("#vz").value = 1; this.zoom(1); $("#viewer").hidden = false; $("#vclose").focus(); },
+  zoom(z) { const m = $("#vimg"); m.style.width = z * 100 + "%"; m.style.maxHeight = z > 1 ? "none" : "calc(100vh - 110px)"; },
+  close() { $("#viewer").hidden = true; }
+};
+$("#vz").oninput = e => viewer.zoom(+e.target.value);
+$("#vclose").onclick = () => viewer.close();
+document.addEventListener("input", e => {
+  if (e.target.id !== "i_c" && e.target.id !== "i_b") return;
+  ImgTool.c = +$("#i_c").value; ImgTool.b = +$("#i_b").value;
+  clearTimeout(ImgTool.t); ImgTool.t = setTimeout(() => ImgTool.render(), 40);
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-img]");
+  if (b) { if (b.dataset.img === "auto") ImgTool.auto = !ImgTool.auto; else ImgTool.reset(); ImgTool.sync(); ImgTool.render(); return; }
+  const im = e.target.closest("img.pimg"); if (im) viewer.open(im);
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") viewer.close();
+  else if (e.key === "Enter" && e.target.matches && e.target.matches("img.pimg")) viewer.open(e.target);
+});
+
 /* ---------- Copia de seguridad (exportar / importar) ---------- */
 (() => {
   const msg = t => { $("#bkm").textContent = t; };
