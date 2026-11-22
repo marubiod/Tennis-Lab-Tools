@@ -24,9 +24,10 @@ TUS DATOS
   Haz copias periódicas: si borras los datos del navegador, se pierden.
 
 ACTUALIZAR A UNA VERSIÓN NUEVA
-  Sube el nuevo index.html (y los demás archivos si se indican cambios) sobre
-  los anteriores. La app muestra la versión nueva la segunda vez que se abre.
-  Si no cambia, cierra la app por completo y vuelve a abrirla.
+  Sube el nuevo index.html (y sw.js si se indica) sobre los anteriores.
+  Con conexión, la app muestra la versión nueva al abrirla (GitHub Pages puede
+  tardar uno o dos minutos en publicar los cambios). La versión aparece junto
+  al título: compruébala. Sin conexión, usa la última copia guardada.
 
 NOTAS
   - Si abres index.html con doble clic en el ordenador, la aplicación funciona,

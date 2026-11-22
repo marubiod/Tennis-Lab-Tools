@@ -79,7 +79,14 @@ input[type=range]{min-height:36px;padding:0;border:0;background:none;accent-colo
 #vbar{display:flex;gap:12px;align-items:center;padding:10px 14px;color:#fff;font-weight:700}
 #vbar input{flex:1}
 #vbox{flex:1;min-height:0;overflow:auto;display:flex;touch-action:pan-x pan-y pinch-zoom}
-#vimg{margin:auto;max-width:none;height:auto;object-fit:contain}
+#vimg{margin:auto;max-width:none;height:auto;object-fit:contain;max-height:calc(100vh - 110px);max-height:calc(100dvh - 110px)}
+#ned{position:fixed;inset:0;z-index:40;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+#ned[hidden]{display:none}
+#nbar{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+#nbar b{font-size:18px}
+#nbar .chip{background:var(--ball);color:var(--on-ball);border-color:var(--ball)}
+#ntxt{flex:1;min-height:0;width:100%;border:0;border-radius:0;resize:none;font:inherit;font-size:18px;line-height:1.5;padding:16px;background:var(--surface);color:var(--ink)}
+#ntxt:focus{outline:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -88,15 +95,17 @@ input[type=range]{min-height:36px;padding:0;border:0;background:none;accent-colo
 <main id="view" aria-live="polite"></main>
 <footer class="fine"><details id="bk"><summary>Copia de seguridad</summary>
 <p>Guarda un archivo con tus raquetas, encordados y zapatillas, o restáuralo en otro dispositivo.</p>
-<div class="acts"><button class="chip" id="bkx">Exportar copia</button><label class="chip" style="display:inline-flex;align-items:center;cursor:pointer">Importar copia<input type="file" id="bki" accept=".json,application/json" hidden></label><button class="chip" id="bkc" hidden>Restaurar copia</button></div>
-<p id="bkm" role="status"></p><textarea id="bkt" hidden readonly aria-label="Texto de la copia"></textarea></details>
+<div class="acts"><button class="chip" id="bkx">Exportar copia</button><label class="chip" style="display:inline-flex;align-items:center;cursor:pointer">Importar copia<input type="file" id="bki" hidden></label><button class="chip" id="bkc" hidden>Restaurar copia</button></div>
+<p id="bkm" role="status" style="font-weight:700;color:var(--ink)"></p><textarea id="bkt" hidden readonly aria-label="Texto de la copia"></textarea>
+<details style="margin-top:8px"><summary>Pegar copia (si falla el archivo)</summary><textarea id="bkp" placeholder="Pega aquí el contenido del archivo de copia" aria-label="Pegar copia"></textarea><button class="chip" id="bkpb" style="margin-top:8px">Leer texto pegado</button></details></details>
 <p>Valores orientativos. La app se amplía registrando nuevas herramientas.</p></footer>
 <nav id="nav" role="tablist" aria-label="Herramientas"></nav>
 
 <div id="viewer" hidden role="dialog" aria-modal="true" aria-label="Visor de imagen"><div id="vbar"><button class="chip" id="vclose">Cerrar</button><span aria-hidden="true">−</span><input type="range" id="vz" min="1" max="4" step="0.1" value="1" aria-label="Ampliación"><span aria-hidden="true">+</span></div><div id="vbox"><img id="vimg" alt=""></div></div>
+<div id="ned" hidden role="dialog" aria-modal="true" aria-label="Editor de notas"><div id="nbar"><b id="ntitle">Notas</b><button class="chip" id="nok">Listo</button></div><textarea id="ntxt" aria-label="Texto de la nota"></textarea></div>
 <script>
 "use strict";
-const VERSION = "1.8.0";
+const VERSION = "1.9.0";
 document.getElementById("ver").textContent = VERSION;
 
 /* ---------- Registro de herramientas: añadir una función nueva = registrar un objeto más ---------- */
@@ -650,7 +659,7 @@ const ImgTool = {
 };
 const viewer = {
   open(im) { const v = $("#vimg"); v.src = im.src; v.alt = im.alt || ""; $("#vz").value = 1; this.zoom(1); $("#viewer").hidden = false; $("#vclose").focus(); },
-  zoom(z) { const m = $("#vimg"); m.style.width = z * 100 + "%"; m.style.maxHeight = z > 1 ? "none" : "calc(100vh - 110px)"; },
+  zoom(z) { const m = $("#vimg"); m.style.width = z * 100 + "%"; m.style.maxHeight = z > 1 ? "none" : ""; },
   close() { $("#viewer").hidden = true; }
 };
 $("#vz").oninput = e => viewer.zoom(+e.target.value);
@@ -681,6 +690,26 @@ document.addEventListener("keydown", e => {
   else if (e.key === "Enter" && e.target.matches && e.target.matches("img.pimg")) viewer.open(e.target);
 });
 
+/* ---------- Editor de notas a pantalla completa ---------- */
+const NED = {t: null};
+const nedClose = () => {
+  if (!NED.t) return;
+  NED.t.value = $("#ntxt").value; NED.t.dispatchEvent(new Event("input", {bubbles: true}));
+  NED.t = null; $("#ned").hidden = true;
+};
+document.addEventListener("focusin", e => {
+  const t = e.target;
+  if (NED.t || !t.matches || !t.matches("textarea[data-r],textarea[data-c]")) return;
+  NED.t = t;
+  const lab = t.closest("label"), sp = lab && lab.querySelector("span");
+  $("#ntitle").textContent = sp ? sp.textContent : "Notas";
+  const a = $("#ntxt"); a.value = t.value; a.placeholder = t.placeholder || "";
+  $("#ned").hidden = false; t.blur(); a.focus(); a.setSelectionRange(a.value.length, a.value.length);
+});
+$("#ntxt").oninput = e => { if (NED.t) NED.t.value = e.target.value; };
+$("#nok").onclick = nedClose;
+document.addEventListener("keydown", e => { if (e.key === "Escape") nedClose(); });
+
 /* ---------- Copia de seguridad (exportar / importar) ---------- */
 (() => {
   const msg = t => { $("#bkm").textContent = t; };
@@ -697,20 +726,26 @@ document.addEventListener("keydown", e => {
     try { await dl.save({filename: "tennis-lab-tools-" + today() + ".json", data: txt}); msg("Copia guardada."); }
     catch (e) { if (e && e.code === "declined") msg("Descarga cancelada."); else showText(txt); }
   };
-  $("#bki").onchange = e => {
-    const f = e.target.files[0]; if (!f) return;
-    const rd = new FileReader();
-    rd.onload = () => {
-      try {
-        const o = JSON.parse(rd.result);
-        if (o.app !== "Tennis Lab Tools") throw 0;
-        pending = {r: Array.isArray(o.raquetas) ? o.raquetas : [], z: Array.isArray(o.zapatillas) ? o.zapatillas : []};
-        msg(`Copia con ${pending.r.length} raqueta(s) y ${pending.z.length} par(es) de zapatillas. Al restaurarla se reemplazarán los datos actuales.`);
-        $("#bkc").hidden = false;
-      } catch (err) { pending = null; $("#bkc").hidden = true; msg("El archivo no es una copia válida de Tennis Lab Tools."); }
-    };
-    rd.readAsText(f); e.target.value = "";
+  const parse = txt => {
+    try {
+      const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
+      const o = JSON.parse(a >= 0 && b > a ? txt.slice(a, b + 1) : txt);
+      const r = Array.isArray(o.raquetas) ? o.raquetas : [], z = Array.isArray(o.zapatillas) ? o.zapatillas : [];
+      if (o.app !== "Tennis Lab Tools" && !r.length && !z.length) throw 0;
+      pending = {r, z};
+      msg(`Copia lista: ${r.length} raqueta(s) y ${z.length} par(es) de zapatillas. Pulsa «Restaurar copia» para reemplazar los datos actuales.`);
+      $("#bkc").hidden = false; $("#bkc").scrollIntoView({block: "center"});
+    } catch (err) { pending = null; $("#bkc").hidden = true; msg("El contenido no es una copia válida de Tennis Lab Tools."); }
   };
+  $("#bki").onchange = e => {
+    const inp = e.target, f = inp.files[0]; if (!f) return;
+    msg("Leyendo «" + f.name + "»…"); $("#bkm").scrollIntoView({block: "center"});
+    const rd = new FileReader();
+    rd.onload = () => { inp.value = ""; parse(String(rd.result)); };
+    rd.onerror = () => { inp.value = ""; msg("No se pudo leer el archivo. Si está en Drive, descárgalo primero al móvil o usa «Pegar copia»."); };
+    rd.readAsText(f);
+  };
+  $("#bkpb").onclick = () => parse($("#bkp").value);
   $("#bkc").onclick = () => {
     if (!pending) return;
     const ok = saveR(pending.r) & saveZ(pending.z);
