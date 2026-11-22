@@ -99,6 +99,7 @@ input[type=range]{min-height:36px;padding:0;border:0;background:none;accent-colo
 <main id="view" aria-live="polite"></main>
 <footer class="fine"><details id="bk"><summary>Copia de seguridad</summary>
 <p>Guarda un archivo con tus raquetas, encordados y zapatillas, o restáuralo en otro dispositivo.</p>
+<p class="fine" id="bkinfo"></p>
 <div class="acts"><button class="chip" id="bkx">Exportar copia</button><button class="chip" id="bkc" hidden>Restaurar copia</button></div>
 <label class="field" style="margin:12px 0 0"><span>Importar copia: elige el archivo .json</span><input type="file" id="bki" style="font-size:15px;min-height:0"></label>
 <p id="bkm" role="status" style="font-weight:700;color:var(--ink)"></p><textarea id="bkt" hidden readonly aria-label="Texto de la copia"></textarea>
@@ -111,7 +112,7 @@ input[type=range]{min-height:36px;padding:0;border:0;background:none;accent-colo
 <div id="toast" hidden role="status"><span id="tmsg"></span><button class="chip" id="tact" hidden></button><button class="chip" id="tx" aria-label="Cerrar aviso">✕</button></div>
 <script>
 "use strict";
-const VERSION = "1.9.1";
+const VERSION = "1.9.2";
 document.getElementById("ver").textContent = VERSION;
 
 /* ---------- Registro de herramientas: añadir una función nueva = registrar un objeto más ---------- */
@@ -723,7 +724,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") nedClose(); 
     const el = $("#toast"), b = $("#tact"); $("#tmsg").textContent = t; b.hidden = !act; b.textContent = act || ""; el.hidden = false;
     clearTimeout(toast.t); if (!act) toast.t = setTimeout(() => { el.hidden = true; }, 12000);
   };
-  const msg = t => { $("#bkm").textContent = t; toast(t); };
+  const msg = t => { if (/^Copia (guardada|descargada)/.test(t)) { try { localStorage.setItem("cancha:lastbackup", new Date().toISOString()); } catch (e) {} } $("#bkm").textContent = t; toast(t); if (typeof storageInfo === "function") storageInfo(); };
   const showText = txt => { const a = $("#bkt"); a.hidden = false; a.value = txt; a.focus(); a.select(); msg("Copia el texto y guárdalo en un archivo .json (por ejemplo, en una nota)."); };
   $("#tx").onclick = () => { $("#toast").hidden = true; };
   window.addEventListener("error", e => toast("Error en la app: " + e.message));
@@ -771,6 +772,18 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") nedClose(); 
   $("#bkpb").onclick = () => { const t = $("#bkp").value; if (!t.trim()) { msg("El cuadro de texto está vacío."); return; } parse(t); };
   $("#bkc").onclick = restore; $("#tact").onclick = restore;
 })();
+/* ---------- Estado del almacenamiento ---------- */
+const storageInfo = async () => {
+  const el = $("#bkinfo"); if (!el) return;
+  let prot = "no disponible";
+  try { if (navigator.storage && navigator.storage.persisted) prot = (await navigator.storage.persisted()) ? "sí" : "no"; } catch (e) {}
+  let last = ""; try { last = localStorage.getItem("cancha:lastbackup") || ""; } catch (e) {}
+  el.innerHTML = `Dirección donde se guardan los datos: <b>${esc(location.origin + location.pathname.replace(/[^/]*$/, ""))}</b><br>Guardado aquí: ${loadR().length} raqueta(s) y ${loadZ().length} par(es) de zapatillas · Protegido contra borrado automático: ${prot}<br>Última copia exportada: ${last ? dmy(last.slice(0, 10)) : "ninguna"}.`;
+};
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().then(storageInfo, () => {}); } catch (e) {}
+$("#bk").addEventListener("toggle", storageInfo);
+storageInfo();
+
 /* ---------- Instalación y uso sin conexión ---------- */
 if ("serviceWorker" in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
