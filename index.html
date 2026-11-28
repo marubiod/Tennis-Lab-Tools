@@ -112,7 +112,7 @@ input[type=range]{min-height:36px;padding:0;border:0;background:none;accent-colo
 <div id="toast" hidden role="status"><span id="tmsg"></span><button class="chip" id="tact" hidden></button><button class="chip" id="tx" aria-label="Cerrar aviso">✕</button></div>
 <script>
 "use strict";
-const VERSION = "1.9.4";
+const VERSION = "1.9.5";
 document.getElementById("ver").textContent = VERSION;
 window.addEventListener("error", e => { const t = document.getElementById("toast"), m = document.getElementById("tmsg"); if (t && m) { m.textContent = "Error en la app: " + e.message + (e.lineno ? " (línea " + e.lineno + ")" : ""); t.hidden = false; } });
 
@@ -587,14 +587,14 @@ const nav = $("#nav"), view = $("#view");
 function show(id) {
   const t = TOOLS.find(x => x.id === id) || TOOLS[0];
   nav.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.dataset.id === t.id));
-  t.render(view);
+  try { t.render(view); } catch (err) { view.innerHTML = `<p class="note"><b>No se pudo mostrar esta pantalla.</b> ${esc(err && err.message || err)}</p>`; }
   try { localStorage.setItem("cancha:tool", t.id); } catch (e) {}
   window.scrollTo(0, 0);
 }
 nav.innerHTML = TOOLS.map(t => `<button role="tab" data-id="${t.id}">${t.icon}${t.name}</button>`).join("");
 nav.querySelectorAll("button").forEach(b => b.onclick = () => show(b.dataset.id));
 let last = null; try { last = localStorage.getItem("cancha:tool"); } catch (e) {}
-show(last);
+/* show(last) se ejecuta al final del script, cuando todos los bloques están definidos */
 /* ---------- Imágenes: ajuste de contraste/brillo y visor ampliable ---------- */
 const adjustPixels = (p, n, c, b, auto) => {
   let lo = 0, hi = 255;
@@ -812,6 +812,9 @@ const storageInfo = async () => {
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().then(storageInfo, () => {}); } catch (e) {}
 $("#bk").addEventListener("toggle", storageInfo);
 storageInfo();
+
+/* ---------- Arranque ---------- */
+show(last);
 
 /* ---------- Instalación y uso sin conexión ---------- */
 if ("serviceWorker" in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(() => {});
